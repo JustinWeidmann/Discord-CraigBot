@@ -5,7 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 TOKEN = "Nzg1NjkzNDk3MTU5OTc0OTgy.X87kFw.KGnloEjq4qVHfUw_Z1qmzQelgac"
 searchTerm = "metal"
-channelID = 518298731855216642
+channelID = 790714962037309530
 
 client = discord.Client()
 
@@ -30,6 +30,7 @@ async def on_message(message):
     #     await message.channel.send(f'Channel set to: **{channelID}**')
 
     if message.content.startswith('!give me the scoop'):
+        print(f'Scraping all the {searchTerm}...')
         await message.channel.send("Give me a sec...")
         global oldPostTime
 
