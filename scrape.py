@@ -48,9 +48,10 @@ def runScrape(QUERY):
     scrapeResults = outputResults(totalQueryPosts)
 
     postPercentage = round((len(totalQueryPosts) / len(totalPosts) * 100), 1)
-    print(f'{len(totalQueryPosts)} of the total {len(totalPosts)} free posts contained {QUERY}. Thats {postPercentage}%!')
+    funFact = f'{len(totalQueryPosts)} of the total {len(totalPosts)} free posts contained {QUERY}. Thats {postPercentage}%!'
+    print(funFact)
 
-    return scrapeResults
+    return scrapeResults, funFact
 
 #cregResults = runScrape("metal")
 #print(cregResults)

@@ -35,11 +35,12 @@ async def on_message(message):
         global oldPostTime
 
         cregResults = scrape.runScrape(searchTerm)
-        postIndex = cregResults[0]
-        postTitle = cregResults[1]
-        postTime = cregResults[2]
-        postLocation = cregResults[3]
-        postURL = cregResults[4]
+        postIndex = cregResults[0][0]
+        postTitle = cregResults[0][1]
+        postTime = cregResults[0][2]
+        postLocation = cregResults[0][3]
+        postURL = cregResults[0][4]
+        funFact = cregResults[1]
 
         i = 0
         for cregResults in postIndex:
@@ -47,6 +48,7 @@ async def on_message(message):
 
             i += 1
         
+        await message.channel.send(funFact)
         oldPostTime = postTime
 
     if message.content.startswith('!search'):
@@ -55,16 +57,19 @@ async def on_message(message):
         print(f'Scraping for {searchGrab}...')
 
         cregResults = scrape.runScrape(searchGrab)
-        postIndex = cregResults[0]
-        postTitle = cregResults[1]
-        postTime = cregResults[2]
-        postLocation = cregResults[3]
-        postURL = cregResults[4]
+        postIndex = cregResults[0][0]
+        postTitle = cregResults[0][1]
+        postTime = cregResults[0][2]
+        postLocation = cregResults[0][3]
+        postURL = cregResults[0][4]
+        funFact = cregResults[1]
 
         i = 0
         for cregResults in postIndex:
             await message.channel.send(f'{postIndex[i]}: {postTitle[i]}\n {postTime[i]}\n {postLocation[i]}\n {postURL[i]}\n')
             i += 1
+        
+        await message.channel.send(funFact)
 
     # if message.content.startswith('!stop'):
     #     print("got stop")
@@ -74,7 +79,7 @@ def initialCheck():
     print("Runing ititial check...")
     cregResults = scrape.runScrape(searchTerm)
     global oldPostTime
-    oldPostTime = cregResults[2]
+    oldPostTime = cregResults[0][2]
 
 async def checkForNew():
     global oldPostTime
@@ -82,10 +87,10 @@ async def checkForNew():
     channel = client.get_channel(channelID)    # Discord Channel ID, Room-1:528448098293514240,
     print("Checking for new posts...")
     cregResults = scrape.runScrape(searchTerm)
-    postTitle = cregResults[1]
-    postTime = cregResults[2]
-    postLocation = cregResults[3]
-    postURL = cregResults[4]
+    postTitle = cregResults[0][1]
+    postTime = cregResults[0][2]
+    postLocation = cregResults[0][3]
+    postURL = cregResults[0][4]
 
     
     i = 0
