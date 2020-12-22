@@ -1,24 +1,56 @@
 import discord
+from discord.ext import commands
+
 import scrape
 import asyncio
+import json
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 TOKEN = "Nzg1NjkzNDk3MTU5OTc0OTgy.X87kFw.KGnloEjq4qVHfUw_Z1qmzQelgac"
 searchTerm = "metal"
-channelID = 790714962037309530
+#channelID = 790714962037309530
 
-client = discord.Client()
+bot = commands.Bot(command_prefix='!')
 
 
-@client.event
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('We have logged in as {0.user}'.format(bot))
     #message.channel.send(f'Heyyyy mann im your local scraper for {searchTerm} and posting to {channelID}. !creg help to get started bro ͡° ͜ʖ ͡ –')
 
+#sets value in json to guild id upon the bot joining the guild
+@bot.event
+async def on_guild_join(guild):
+    #loads json file to dictionary
+    with open("servers.json", "r") as f:
+        guildInfo = json.load(f)
 
-@client.event
+    guildInfo[guild.id] = guild.text_channels[0] #sets key to guilds id and value to top textchannel
+    
+    #writes dictionary to json file
+    with open("servers.json", "w") as f:
+        json.dump(guildInfo, f)
+
+#allows server members to set channel for welcome messages to send to    
+@bot.command()
+async def welcomeMessage(ctx):
+    with open("servers.json", "r") as f:
+        guildInfo = json.load(f)
+
+    guildInfo[ctx.message.guild.id] = ctx.message.channel.id #sets channel to send message to as the channel the command was sent to
+
+    with open("servers.json", "w") as f:
+        json.dump(guildInfo, f)
+    
+    with open("filename.json", "r"):
+        guildInfo = json.load(f)
+
+    channel = guildInfo[ctx.message.guild.id]
+    channel.send(embed = discord)
+
+@bot.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author == bot.user:
         return
     
     if message.content.startswith('!creg help'):
@@ -84,7 +116,7 @@ def initialCheck():
 async def checkForNew():
     global oldPostTime
     global channelID
-    channel = client.get_channel(channelID)    # Discord Channel ID, Room-1:528448098293514240,
+    channel = bot.get_channel(790714962037309530)    # Discord Channel ID, Room-1:528448098293514240,
     print("Checking for new posts...")
     cregResults = scrape.runScrape(searchTerm)
     postTitle = cregResults[0][1]
@@ -116,4 +148,4 @@ if __name__ == '__main__':
     sched = AsyncIOScheduler()
     sched.add_job(checkForNew, 'interval', minutes = 10)
     sched.start()
-client.run(TOKEN)
+bot.run(TOKEN)
