@@ -31,8 +31,10 @@ async def on_guild_join(guild):
     with open('serverChannles.json', "r") as f:
         channels = json.load(f)
 
-    channels[str(guild.id)] = str(guild.text_channels[1]) #sets key to guilds id and value to top textchannel
-    print(channels)
+    channel = discord.utils.get(guild.channels, name = str(guild.text_channels[0]))
+    channelID = channel.id
+    channels[str(guild.id)] = channelID
+    #print(f'channels: {channels}')
 
     #writes dictionary to json file
     with open('serverChannles.json', "w") as f:
