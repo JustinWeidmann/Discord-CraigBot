@@ -8,13 +8,15 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 TOKEN = "Nzg1NjkzNDk3MTU5OTc0OTgy.X87kFw.KGnloEjq4qVHfUw_Z1qmzQelgac"
 searchTerm = "metal"
-#channelID = getChannel()
+#channelID = 790714962037309530
 
 def getChannel(bot, message):
+    print('Ive been run!!!')
     with open('serverChannles.json', 'r') as f:
-        channelID = json.load(f)
+        channel_id = json.load(f)
 
-    return channelID[str(message.guild.id)]
+    print(channel_id)
+    return channel_id[str(message.guild.id)]
 
 bot = commands.Bot(command_prefix='!')
 
@@ -132,7 +134,7 @@ def initialCheck():
 async def checkForNew():
     global oldPostTime
     global channelID
-    channel = bot.get_channel(getChannel(bot, "!"))    # Discord Channel ID, Room-1:528448098293514240,
+    channel = bot.get_channel(getChannel(bot, '!'))    # Discord Channel ID, Room-1:528448098293514240,
     print("Checking for new posts...")
     cregResults = scrape.runScrape(searchTerm)
     postTitle = cregResults[0][1]
@@ -162,6 +164,6 @@ async def checkForNew():
 initialCheck()
 if __name__ == '__main__':
     sched = AsyncIOScheduler()
-    sched.add_job(checkForNew, 'interval', minutes = 10)
+    sched.add_job(checkForNew, 'interval', minutes = 1)
     sched.start()
 bot.run(TOKEN)
