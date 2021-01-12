@@ -8,7 +8,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 TOKEN = "Nzg1NjkzNDk3MTU5OTc0OTgy.X87kFw.KGnloEjq4qVHfUw_Z1qmzQelgac"
 searchTerm = "metal"
-#channelID = 790714962037309530
+#searchList = ["metal", "wood", "wheels", "office chair", "grill", "cooler"]
+searchList = ["office chair", "grill", "cooler"]
+channelID = 790714962037309530
 
 def getChannel(bot, message):
     print('Ive been run!!!')
@@ -72,7 +74,7 @@ async def on_message(message):
         return
     
     if message.content.startswith('!creg help'):
-        await message.channel.send(f'**!setChannelID <channelID>**:   Sets defalt channel\n**!give me the scoop**:   Prints all results for {searchTerm}\n**!search <term>**:   Searches for <term> then prints all results')
+        await message.channel.send(f'**!setChannelID <channelID>**:   Sets defalt channel\n**!give me the scoop**:   Prints all results for {searchList}\n**!search <term>**:   Searches for <term> then prints all results')
 
     # if message.content.startswith('!setChannelID'):
     #     global channelID
@@ -80,26 +82,27 @@ async def on_message(message):
     #     await message.channel.send(f'Channel set to: **{channelID}**')
 
     if message.content.startswith('!give me the scoop'):
-        print(f'Scraping all the {searchTerm}...')
+        print(f'Scraping all the {searchList}...')
         await message.channel.send("Give me a sec...")
         global oldPostTime
 
-        cregResults = scrape.runScrape(searchTerm)
-        postIndex = cregResults[0][0]
-        postTitle = cregResults[0][1]
-        postTime = cregResults[0][2]
-        postLocation = cregResults[0][3]
-        postURL = cregResults[0][4]
-        funFact = cregResults[1]
+        for i in range(len(searchList)):
+            cregResults = scrape.runScrape(searchList[i])
+            postIndex = cregResults[0][0]
+            postTitle = cregResults[0][1]
+            postTime = cregResults[0][2]
+            postLocation = cregResults[0][3]
+            postURL = cregResults[0][4]
+            funFact = cregResults[1]
 
-        i = 0
-        for cregResults in postIndex:
-            await message.channel.send(f'{postIndex[i]}: {postTitle[i]}\n {postTime[i]}\n {postLocation[i]}\n {postURL[i]}\n')
+            j = 0
+            for cregResults in postIndex:
+                await message.channel.send(f'{postIndex[j]}: {postTitle[j]}\n {postTime[j]}\n {postLocation[j]}\n {postURL[j]}\n')
 
-            i += 1
-        
-        await message.channel.send(funFact)
-        oldPostTime = postTime
+                j += 1
+            
+            await message.channel.send(funFact)
+            oldPostTime[i] = postTime
 
     if message.content.startswith('!search'):
         searchGrab = message.content[8:]
@@ -121,49 +124,54 @@ async def on_message(message):
         
         await message.channel.send(funFact)
 
-    # if message.content.startswith('!stop'):
-    #     print("got stop")
-    #     break command
 
 def initialCheck():
     print("Runing ititial check...")
-    cregResults = scrape.runScrape(searchTerm)
     global oldPostTime
-    oldPostTime = cregResults[0][2]
+    oldPostTime = []
+
+    for i in range(len(searchList)):
+        cregResults = scrape.runScrape(searchList[i])
+        oldPostTime.append(cregResults[0][2])
+    print("Done!")
 
 async def checkForNew():
     global oldPostTime
     global channelID
-    channel = bot.get_channel(getChannel(bot, '!'))    # Discord Channel ID, Room-1:528448098293514240,
+    channel = bot.get_channel(channelID)    # Discord Channel ID, Room-1:528448098293514240,
     print("Checking for new posts...")
-    cregResults = scrape.runScrape(searchTerm)
-    postTitle = cregResults[0][1]
-    postTime = cregResults[0][2]
-    postLocation = cregResults[0][3]
-    postURL = cregResults[0][4]
 
-    
-    i = 0
-    for cregResults in postTime:
-        print(f'Checking: {i}')
-        if postTime[i] <= oldPostTime[0]:
-            print("Ran out of new")
-            print(f'Because: {postTime[i]} is <= then {oldPostTime[0]}')
-            #await channel.send("Nada")
-            break
-        elif postTime[i] > oldPostTime[0]:
-            print(f'{i} is new!!')
-            print(f'Because: {postTime[i]} is > then {oldPostTime[0]}')
-            await channel.send(f'{postTitle[i]}\n {postTime[i]}\n {postLocation[i]} {postURL[i]}\n')
+    for i in range(len(searchList)):
+        cregResults = scrape.runScrape(searchList[i])
+        postTitle = cregResults[0][1]
+        postTime = cregResults[0][2]
+        postLocation = cregResults[0][3]
+        postURL = cregResults[0][4]
+
         
-        i += 1
+        j = 0
+        for cregResults in postTime:
+            print(f'Checking: {j}')
+            if postTime[j] <= oldPostTime[i][0]:
+                print("Ran out of new")
+                print(f'Because: {postTime[j]} is <= then {oldPostTime[i][0]}')
+                #await channel.send("Nada")
+                break
+            elif postTime[j] > oldPostTime[i][0]:
+                print(f'{j} is new!!')
+                print(f'Because: {postTime[j]} is > then {oldPostTime[i][0]}')
+                await channel.send(f'{postTitle[j]}\n {postTime[j]}\n {postLocation[j]} {postURL[j]}\n')
+            
+            j += 1
+        
+        oldPostTime[i] = postTime
     
-    oldPostTime = postTime
+    print("Done!")
     
 
 initialCheck()
 if __name__ == '__main__':
     sched = AsyncIOScheduler()
-    sched.add_job(checkForNew, 'interval', minutes = 1)
+    sched.add_job(checkForNew, 'interval', minutes = 5)
     sched.start()
 bot.run(TOKEN)
