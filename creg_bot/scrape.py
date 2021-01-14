@@ -25,7 +25,7 @@ def runScrape(QUERY):
             postTime = post.find('time', class_='result-date').get('datetime')
             postPreLocation = post.find('span', class_='result-hood')
             if postPreLocation is None:
-                postLocation = "(IDK bro ¯\_(ツ)_/¯)"
+                postLocation = "(¯\_(ツ)_/¯)"   #IDK bro ¯\_(ツ)_/¯
             else:
                 postLocation = postPreLocation.get_text()
             postURL = post.find('a', class_='result-title').get('href')

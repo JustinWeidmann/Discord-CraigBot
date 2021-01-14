@@ -2,14 +2,15 @@ import discord
 from discord.ext import commands
 
 import scrape
+import moneyScrape
 import asyncio
 import json
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-TOKEN = "Nzg1NjkzNDk3MTU5OTc0OTgy.X87kFw.KGnloEjq4qVHfUw_Z1qmzQelgac"
-searchTerm = "metal"
-#searchList = ["metal", "wood", "wheels", "office chair", "grill", "cooler"]
-searchList = ["office chair", "grill", "cooler"]
+TOKEN = "Nzk4NjQ3NTY5ODk0MjExNjM0.X_4Egg.XQspqdLEL3mkJrMX9XBEDB6IkUA"
+#searchList = ["metal", "wood", "wheels", "office chair", "grill", "cooler", "frame"]
+searchList = ["metal", "wood"]
+universalBudget = 100
 channelID = 790714962037309530
 
 def getChannel(bot, message):
@@ -26,7 +27,7 @@ bot = commands.Bot(command_prefix='!')
 @bot.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(bot))
-    #message.channel.send(f'Heyyyy mann im your local scraper for {searchTerm} and posting to {channelID}. !creg help to get started bro ͡° ͜ʖ ͡ –')
+    #message.channel.send(f'Heyyyy mann im your local scraper for {searchList} and posting to {channelID}. !creg help to get started bro ͡° ͜ʖ ͡ –')
 
 #sets value in json to guild id upon the bot joining the guild
 @bot.event
@@ -74,7 +75,7 @@ async def on_message(message):
         return
     
     if message.content.startswith('!creg help'):
-        await message.channel.send(f'**!setChannelID <channelID>**:   Sets defalt channel\n**!give me the scoop**:   Prints all results for {searchList}\n**!search <term>**:   Searches for <term> then prints all results')
+        await message.channel.send(f'**!setChannelID <channelID>**:   Sets defalt channel\n**!give me the scoop**:   Prints all results for {searchList}\n**!search <term>**:   Searches for <term> then prints all results\n**!mSearch <term>**:   Searches for <term> with budget of ${universalBudget} then prints all results')
 
     # if message.content.startswith('!setChannelID'):
     #     global channelID
@@ -117,6 +118,27 @@ async def on_message(message):
         postURL = cregResults[0][4]
         funFact = cregResults[1]
 
+        if len(postIndex) != 0:
+            for i in range(len(postIndex)):
+                await message.channel.send(f'{postIndex[i]}: {postTitle[i]}\n {postTime[i]}\n {postLocation[i]}\n {postURL[i]}\n')
+                await message.channel.send(funFact)
+        else:
+            await message.channel.send(f'Either somthing went wrong or there are no "{searchGrab}" on Craigslist right now')
+        
+    
+    if message.content.startswith('!mSearch'):
+        searchGrab = message.content[9:]
+        await message.channel.send(f'Searching for {searchGrab}...')
+        print(f'Scraping for {searchGrab}...')
+
+        cregResults = moneyScrape.runScrapeMon(searchGrab, universalBudget)
+        postIndex = cregResults[0][0]
+        postTitle = cregResults[0][1]
+        postTime = cregResults[0][2]
+        postLocation = cregResults[0][3]
+        postURL = cregResults[0][4]
+        funFact = cregResults[1]
+
         i = 0
         for cregResults in postIndex:
             await message.channel.send(f'{postIndex[i]}: {postTitle[i]}\n {postTime[i]}\n {postLocation[i]}\n {postURL[i]}\n')
@@ -137,8 +159,8 @@ def initialCheck():
 
 async def checkForNew():
     global oldPostTime
-    global channelID
-    channel = bot.get_channel(channelID)    # Discord Channel ID, Room-1:528448098293514240,
+    # global channelID
+    # channel = bot.get_channel(channelID)    # Discord Channel ID, Room-1:528448098293514240,
     print("Checking for new posts...")
 
     for i in range(len(searchList)):
@@ -155,12 +177,17 @@ async def checkForNew():
             if postTime[j] <= oldPostTime[i][0]:
                 print("Ran out of new")
                 print(f'Because: {postTime[j]} is <= then {oldPostTime[i][0]}')
-                #await channel.send("Nada")
                 break
             elif postTime[j] > oldPostTime[i][0]:
                 print(f'{j} is new!!')
                 print(f'Because: {postTime[j]} is > then {oldPostTime[i][0]}')
-                await channel.send(f'{postTitle[j]}\n {postTime[j]}\n {postLocation[j]} {postURL[j]}\n')
+                
+                with open('serverChannles.json', 'r') as f:
+                    channel_id = json.load(f)
+                    for k in range(len(f)):
+                        channelID = channel_id[k]
+                        channel = bot.get_channel(channelID)
+                        await channel.send(f'{postTitle[j]}\n {postTime[j]}\n {postLocation[j]} {postURL[j]}\n')
             
             j += 1
         

@@ -3,3 +3,4 @@ logs.txt
 /__pycache__
 /.vscode
 /creg_bot/__pycache__
+test.py
