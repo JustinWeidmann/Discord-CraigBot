@@ -8,18 +8,8 @@ import json
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 TOKEN = "Nzk4NjQ3NTY5ODk0MjExNjM0.X_4Egg.XQspqdLEL3mkJrMX9XBEDB6IkUA"
-#searchList = ["metal", "wood", "wheels", "office chair", "grill", "cooler", "frame"]
-searchList = ["metal", "wood"]
+searchList = ["monitor", "tv"]
 universalBudget = 100
-channelID = 790714962037309530
-
-def getChannel(bot, message):
-    print('Ive been run!!!')
-    with open('serverChannles.json', 'r') as f:
-        channel_id = json.load(f)
-
-    print(channel_id)
-    return channel_id[str(message.guild.id)]
 
 bot = commands.Bot(command_prefix='!')
 
@@ -121,9 +111,9 @@ async def on_message(message):
         if len(postIndex) != 0:
             for i in range(len(postIndex)):
                 await message.channel.send(f'{postIndex[i]}: {postTitle[i]}\n {postTime[i]}\n {postLocation[i]}\n {postURL[i]}\n')
-                await message.channel.send(funFact)
+            await message.channel.send(funFact)
         else:
-            await message.channel.send(f'Either somthing went wrong or there are no "{searchGrab}" on Craigslist right now')
+            await message.channel.send(f'There are no "{searchGrab}" on Craigslist right now')
         
     
     if message.content.startswith('!mSearch'):
@@ -136,15 +126,16 @@ async def on_message(message):
         postTitle = cregResults[0][1]
         postTime = cregResults[0][2]
         postLocation = cregResults[0][3]
-        postURL = cregResults[0][4]
+        postPrice = cregResults[0][4]
+        postURL = cregResults[0][5]
         funFact = cregResults[1]
 
-        i = 0
-        for cregResults in postIndex:
-            await message.channel.send(f'{postIndex[i]}: {postTitle[i]}\n {postTime[i]}\n {postLocation[i]}\n {postURL[i]}\n')
-            i += 1
-        
-        await message.channel.send(funFact)
+        if len(postIndex) != 0:
+            for i in range(len(postIndex)):
+                await message.channel.send(f'{postIndex[i]}: {postTitle[i]}\n {postTime[i]}\n {postLocation[i]}\n ${postPrice[i]}\n {postURL[i]}\n')
+            await message.channel.send(funFact)
+        else:
+            await message.channel.send(f'There are no "{searchGrab}" in your budget of **${universalBudget}** on Craigslist right now')
 
 
 def initialCheck():
@@ -155,12 +146,10 @@ def initialCheck():
     for i in range(len(searchList)):
         cregResults = scrape.runScrape(searchList[i])
         oldPostTime.append(cregResults[0][2])
-    print("Done!")
+    print("Done with initial check!")
 
 async def checkForNew():
     global oldPostTime
-    # global channelID
-    # channel = bot.get_channel(channelID)    # Discord Channel ID, Room-1:528448098293514240,
     print("Checking for new posts...")
 
     for i in range(len(searchList)):
@@ -171,8 +160,7 @@ async def checkForNew():
         postURL = cregResults[0][4]
 
         
-        j = 0
-        for cregResults in postTime:
+        for j in range(len(postTime)):
             print(f'Checking: {j}')
             if postTime[j] <= oldPostTime[i][0]:
                 print("Ran out of new")
@@ -184,16 +172,14 @@ async def checkForNew():
                 
                 with open('serverChannles.json', 'r') as f:
                     channel_id = json.load(f)
-                    for k in range(len(f)):
-                        channelID = channel_id[k]
-                        channel = bot.get_channel(channelID)
+                    for k in range(len(channel_id)):
+                        channelID = list(channel_id.values())
+                        channel = bot.get_channel(channelID[k])
                         await channel.send(f'{postTitle[j]}\n {postTime[j]}\n {postLocation[j]} {postURL[j]}\n')
-            
-            j += 1
         
         oldPostTime[i] = postTime
     
-    print("Done!")
+    print("Done checking!")
     
 
 initialCheck()
